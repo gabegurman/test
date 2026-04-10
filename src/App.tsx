@@ -34,6 +34,7 @@ function App() {
   const [mapZoom, setMapZoom] = useState(12);
   const mapRef = useRef<any>(null);
   const placesServiceRef = useRef<google.maps.places.PlacesService | null>(null);
+  const boundsChangeTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user's current location on mount
   const initializeUserLocation = useCallback(() => {
@@ -107,12 +108,15 @@ function App() {
 
   // Handle map bounds changed (auto-search when user drags/zooms)
   const handleBoundsChanged = useCallback(() => {
-    if (mapRef.current && !loading) {
-      // Auto-search with slight delay to avoid too many requests
-      const timer = setTimeout(() => {
+    if (!loading && placesServiceRef.current) {
+      // Clear existing timer
+      if (boundsChangeTimerRef.current) {
+        clearTimeout(boundsChangeTimerRef.current);
+      }
+      // Set new debounced search
+      boundsChangeTimerRef.current = setTimeout(() => {
         searchBusinesses();
       }, 1000);
-      return () => clearTimeout(timer);
     }
   }, [searchBusinesses, loading]);
 
@@ -227,19 +231,6 @@ function App() {
           zoom={mapZoom}
           onLoad={handleMapLoad}
           onBoundsChanged={handleBoundsChanged}
-          onCenterChanged={() => {
-            if (mapRef.current) {
-              setMapCenter({
-                lat: mapRef.current.getCenter().lat(),
-                lng: mapRef.current.getCenter().lng(),
-              });
-            }
-          }}
-          onZoomChanged={() => {
-            if (mapRef.current) {
-              setMapZoom(mapRef.current.getZoom());
-            }
-          }}
           options={{
             streetViewControl: false,
             mapTypeControl: false,
