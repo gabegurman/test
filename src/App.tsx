@@ -78,20 +78,18 @@ function App() {
 
     setLoading(true);
     try {
-      // Use custom code if in custom mode, otherwise use preset
-      const naicsCode = searchMode === 'custom' ? customNaicsCode : filters.naicsCode;
-
-      if (!naicsCode) {
-        setLoading(false);
-        return;
-      }
-
-      // Use custom google type if in custom mode and provided, otherwise look up the type
       let googleType = '';
-      if (searchMode === 'custom' && customGoogleType) {
-        googleType = customGoogleType;
+
+      if (searchMode === 'custom') {
+        // In custom mode, use custom google type if provided, otherwise try to get from NAICS code
+        if (customGoogleType) {
+          googleType = customGoogleType;
+        } else if (customNaicsCode) {
+          googleType = getGoogleTypeForNAICS(customNaicsCode);
+        }
       } else {
-        googleType = getGoogleTypeForNAICS(naicsCode);
+        // In preset mode, always use the preset NAICS code
+        googleType = getGoogleTypeForNAICS(filters.naicsCode);
       }
 
       if (!googleType) {
@@ -263,7 +261,7 @@ function App() {
           ) : (
             <>
               <div className="control-group">
-                <label htmlFor="custom-naics">NAICS Code</label>
+                <label htmlFor="custom-naics">NAICS Code (optional)</label>
                 <input
                   id="custom-naics"
                   type="text"
@@ -271,18 +269,18 @@ function App() {
                   value={customNaicsCode}
                   onChange={(e) => setCustomNaicsCode(e.target.value.trim())}
                 />
-                <p className="hint">Enter a NAICS code</p>
+                <p className="hint">Enter a NAICS code, or leave blank and use Google Places Type instead</p>
               </div>
               <div className="control-group">
                 <label htmlFor="custom-google-type">Google Places Type (optional)</label>
                 <input
                   id="custom-google-type"
                   type="text"
-                  placeholder="e.g., plumber, electrician, hospital"
+                  placeholder="e.g., plumber, electrician, hospital, restaurant"
                   value={customGoogleType}
                   onChange={(e) => setCustomGoogleType(e.target.value.trim())}
                 />
-                <p className="hint">If NAICS code doesn't return results, try specifying a Google Places type</p>
+                <p className="hint">Search by business type directly (independent of NAICS code)</p>
               </div>
             </>
           )}
