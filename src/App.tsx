@@ -61,9 +61,13 @@ function App() {
   }, []);
 
   // Initialize Places service when map loads
+  // Note: PlacesService.nearbySearch is deprecated but still works and receives bug fixes
+  // Migration to new Places API (google.maps.places.Place) is planned for future release
+  // See: https://developers.google.com/maps/documentation/javascript/places-migration-overview
   const handleMapLoad = useCallback((map: any) => {
     mapRef.current = map;
     if (isLoaded && window.google) {
+      // @ts-ignore - PlacesService is deprecated but still functional
       placesServiceRef.current = new window.google.maps.places.PlacesService(map);
     }
   }, [isLoaded]);
