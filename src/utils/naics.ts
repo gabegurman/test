@@ -10,7 +10,7 @@ export const NAICS_CATEGORIES: NAICSCategory[] = [
   { code: '7222', name: 'Limited-Service Restaurants', googleType: 'restaurant' },
 
   // Retail
-  { code: '4411', name: 'Grocery Stores', googleType: 'grocery_or_supermarket' },
+  { code: '4451', name: 'Grocery Stores', googleType: 'grocery_or_supermarket' },
   { code: '4482', name: 'Specialty Food Stores', googleType: 'grocery_or_supermarket' },
   { code: '4529', name: 'Other General Merchandise Stores', googleType: 'shopping_mall' },
   { code: '4481', name: 'Clothing Stores', googleType: 'clothing_store' },
@@ -40,7 +40,7 @@ export const NAICS_CATEGORIES: NAICSCategory[] = [
 
   // Fitness & Wellness
   { code: '7131', name: 'Fitness & Recreation Centers', googleType: 'gym' },
-  { code: '7211', name: 'Spas', googleType: 'spa' },
+  { code: '8121', name: 'Spas', googleType: 'spa' },
 
   // Real Estate
   { code: '5311', name: 'Real Estate Agents', googleType: 'real_estate_agency' },
