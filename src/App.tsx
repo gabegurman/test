@@ -30,7 +30,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     naicsCode: NAICS_CATEGORIES[0].code,
-    radius: 2000, // 2km default
+    radius: 2, // 2 miles default
   });
   const [customNaicsCode, setCustomNaicsCode] = useState('');
   const [searchMode, setSearchMode] = useState<'preset' | 'custom'>('preset');
@@ -83,9 +83,12 @@ function App() {
 
       const googleType = getGoogleTypeForNAICS(naicsCode);
 
+      // Convert miles to meters (1 mile = 1609.344 meters)
+      const radiusInMeters = filters.radius * 1609.344;
+
       const request = {
         location: new window.google.maps.LatLng(mapCenter.lat, mapCenter.lng),
-        radius: filters.radius,
+        radius: radiusInMeters,
         type: googleType,
       };
 
@@ -255,15 +258,15 @@ function App() {
           )}
 
           <div className="control-group">
-            <label htmlFor="radius">Search Radius (m)</label>
+            <label htmlFor="radius">Search Radius (miles)</label>
             <input
               id="radius"
               type="number"
-              min="500"
-              max="50000"
-              step="500"
+              min="0.25"
+              max="30"
+              step="0.25"
               value={filters.radius}
-              onChange={(e) => setFilters({ ...filters, radius: parseInt(e.target.value) })}
+              onChange={(e) => setFilters({ ...filters, radius: parseFloat(e.target.value) })}
             />
           </div>
 
@@ -328,7 +331,7 @@ function App() {
           {mapCenter && (
             <Circle
               center={mapCenter}
-              radius={filters.radius}
+              radius={filters.radius * 1609.344}
               options={{
                 fillColor: '#4285F4',
                 fillOpacity: 0.1,
