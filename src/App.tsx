@@ -6,6 +6,7 @@ import { exportToCSV } from './utils/csv';
 import './App.css';
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+const GOOGLE_MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || '';
 
 const mapContainerStyle = {
   width: '100%',
@@ -320,6 +321,7 @@ function App() {
           options={{
             streetViewControl: false,
             mapTypeControl: false,
+            mapId: GOOGLE_MAP_ID,
           }}
         >
           {/* Search radius circle */}
