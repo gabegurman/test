@@ -29,6 +29,8 @@ function App() {
     naicsCode: NAICS_CATEGORIES[0].code,
     radius: 2000, // 2km default
   });
+  const [customNaicsCode, setCustomNaicsCode] = useState('');
+  const [searchMode, setSearchMode] = useState<'preset' | 'custom'>('preset');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [mapZoom, setMapZoom] = useState(12);
@@ -68,7 +70,15 @@ function App() {
 
     setLoading(true);
     try {
-      const googleType = getGoogleTypeForNAICS(filters.naicsCode);
+      // Use custom code if in custom mode, otherwise use preset
+      const naicsCode = searchMode === 'custom' ? customNaicsCode : filters.naicsCode;
+
+      if (!naicsCode) {
+        setLoading(false);
+        return;
+      }
+
+      const googleType = getGoogleTypeForNAICS(naicsCode);
 
       const request = {
         location: new window.google.maps.LatLng(mapCenter.lat, mapCenter.lng),
@@ -104,7 +114,7 @@ function App() {
       console.error('Search error:', error);
       setLoading(false);
     }
-  }, [filters, mapCenter]);
+  }, [filters, mapCenter, searchMode, customNaicsCode]);
 
   // Handle map bounds changed (auto-search when user drags/zooms)
   const handleBoundsChanged = useCallback(() => {
@@ -153,19 +163,54 @@ function App() {
 
         <div className="search-controls">
           <div className="control-group">
-            <label htmlFor="naics">Industry Type</label>
-            <select
-              id="naics"
-              value={filters.naicsCode}
-              onChange={(e) => setFilters({ ...filters, naicsCode: e.target.value })}
-            >
-              {NAICS_CATEGORIES.map((cat) => (
-                <option key={cat.code} value={cat.code}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
+            <label>Search By</label>
+            <div className="mode-toggle">
+              <button
+                className={`mode-btn ${searchMode === 'preset' ? 'active' : ''}`}
+                onClick={() => {
+                  setSearchMode('preset');
+                  setCustomNaicsCode('');
+                }}
+              >
+                Preset
+              </button>
+              <button
+                className={`mode-btn ${searchMode === 'custom' ? 'active' : ''}`}
+                onClick={() => setSearchMode('custom')}
+              >
+                Custom Code
+              </button>
+            </div>
           </div>
+
+          {searchMode === 'preset' ? (
+            <div className="control-group">
+              <label htmlFor="naics">Industry Type</label>
+              <select
+                id="naics"
+                value={filters.naicsCode}
+                onChange={(e) => setFilters({ ...filters, naicsCode: e.target.value })}
+              >
+                {NAICS_CATEGORIES.map((cat) => (
+                  <option key={cat.code} value={cat.code}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : (
+            <div className="control-group">
+              <label htmlFor="custom-naics">NAICS Code</label>
+              <input
+                id="custom-naics"
+                type="text"
+                placeholder="e.g., 7225, 6211, 4451"
+                value={customNaicsCode}
+                onChange={(e) => setCustomNaicsCode(e.target.value.trim())}
+              />
+              <p className="hint">Enter a NAICS code to search for that industry type</p>
+            </div>
+          )}
 
           <div className="control-group">
             <label htmlFor="radius">Search Radius (m)</label>
