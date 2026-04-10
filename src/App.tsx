@@ -17,10 +17,12 @@ const defaultCenter = {
   lng: -74.0060,
 };
 
+const LIBRARIES = ['places'] as const;
+
 function App() {
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: GOOGLE_API_KEY,
-    libraries: ['places'],
+    libraries: LIBRARIES,
   });
 
   const [businesses, setBusinesses] = useState<Business[]>([]);
