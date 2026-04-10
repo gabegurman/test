@@ -33,6 +33,7 @@ function App() {
     radius: 2, // 2 miles default
   });
   const [customNaicsCode, setCustomNaicsCode] = useState('');
+  const [customGoogleType, setCustomGoogleType] = useState('');
   const [searchMode, setSearchMode] = useState<'preset' | 'custom'>('preset');
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [mapCenter, setMapCenter] = useState(defaultCenter);
@@ -81,7 +82,18 @@ function App() {
         return;
       }
 
-      const googleType = getGoogleTypeForNAICS(naicsCode);
+      // Use custom google type if in custom mode and provided, otherwise look up the type
+      let googleType = '';
+      if (searchMode === 'custom' && customGoogleType) {
+        googleType = customGoogleType;
+      } else {
+        googleType = getGoogleTypeForNAICS(naicsCode);
+      }
+
+      if (!googleType) {
+        setLoading(false);
+        return;
+      }
 
       // Convert miles to meters (1 mile = 1609.344 meters)
       const radiusInMeters = filters.radius * 1609.344;
@@ -120,7 +132,7 @@ function App() {
       console.error('Search error:', error);
       setLoading(false);
     }
-  }, [filters, mapCenter, searchMode, customNaicsCode]);
+  }, [filters, mapCenter, searchMode, customNaicsCode, customGoogleType]);
 
   // Handle map bounds changed (auto-search when user drags/zooms)
   const handleBoundsChanged = useCallback(() => {
@@ -215,6 +227,7 @@ function App() {
                 onClick={() => {
                   setSearchMode('preset');
                   setCustomNaicsCode('');
+                  setCustomGoogleType('');
                 }}
               >
                 Preset
@@ -244,17 +257,30 @@ function App() {
               </select>
             </div>
           ) : (
-            <div className="control-group">
-              <label htmlFor="custom-naics">NAICS Code</label>
-              <input
-                id="custom-naics"
-                type="text"
-                placeholder="e.g., 7225, 6211, 4451"
-                value={customNaicsCode}
-                onChange={(e) => setCustomNaicsCode(e.target.value.trim())}
-              />
-              <p className="hint">Enter a NAICS code to search for that industry type</p>
-            </div>
+            <>
+              <div className="control-group">
+                <label htmlFor="custom-naics">NAICS Code</label>
+                <input
+                  id="custom-naics"
+                  type="text"
+                  placeholder="e.g., 562991, 7225, 6211"
+                  value={customNaicsCode}
+                  onChange={(e) => setCustomNaicsCode(e.target.value.trim())}
+                />
+                <p className="hint">Enter a NAICS code</p>
+              </div>
+              <div className="control-group">
+                <label htmlFor="custom-google-type">Google Places Type (optional)</label>
+                <input
+                  id="custom-google-type"
+                  type="text"
+                  placeholder="e.g., plumber, electrician, hospital"
+                  value={customGoogleType}
+                  onChange={(e) => setCustomGoogleType(e.target.value.trim())}
+                />
+                <p className="hint">If NAICS code doesn't return results, try specifying a Google Places type</p>
+              </div>
+            </>
           )}
 
           <div className="control-group">
