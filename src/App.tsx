@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react';
-import { GoogleMap, useJsApiIsLoaded, useLoadScript, Marker, Circle } from '@react-google-maps/api';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { GoogleMap, useJsApiIsLoaded, useLoadScript, Circle } from '@react-google-maps/api';
 import { Business, SearchFilters } from './types';
 import { NAICS_CATEGORIES, getGoogleTypeForNAICS } from './utils/naics';
 import { exportToCSV } from './utils/csv';
@@ -17,7 +17,7 @@ const defaultCenter = {
   lng: -74.0060,
 };
 
-const LIBRARIES = ['places'] as const;
+const LIBRARIES = ['places', 'marker'] as const;
 
 function App() {
   const { isLoaded } = useLoadScript({
@@ -131,6 +131,45 @@ function App() {
       }, 1000);
     }
   }, [searchBusinesses, loading]);
+
+  // Create advanced markers for businesses
+  useEffect(() => {
+    if (!mapRef.current || !isLoaded || !window.google?.maps?.marker) return;
+
+    // Clear existing markers
+    const existingMarkers = mapRef.current.userData?.markers || [];
+    existingMarkers.forEach((marker: any) => {
+      marker.map = null;
+    });
+
+    const markers: any[] = [];
+
+    // User location marker
+    if (userLocation) {
+      const userMarker = new window.google.maps.marker.AdvancedMarkerElement({
+        position: userLocation,
+        map: mapRef.current,
+        title: 'Your Location',
+      });
+      markers.push(userMarker);
+    }
+
+    // Business markers
+    businesses.forEach((business) => {
+      const marker = new window.google.maps.marker.AdvancedMarkerElement({
+        position: { lat: business.latitude, lng: business.longitude },
+        map: mapRef.current,
+        title: business.name,
+      });
+      markers.push(marker);
+    });
+
+    // Store markers for cleanup
+    if (!mapRef.current.userData) {
+      mapRef.current.userData = {};
+    }
+    mapRef.current.userData.markers = markers;
+  }, [businesses, userLocation, isLoaded]);
 
   // Initialize on mount
   if (isLoaded && !userLocation) {
@@ -283,22 +322,6 @@ function App() {
             mapTypeControl: false,
           }}
         >
-          {/* User location marker */}
-          {userLocation && (
-            <Marker
-              position={userLocation}
-              title="Your Location"
-              icon={{
-                path: window.google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: '#4285F4',
-                fillOpacity: 1,
-                strokeColor: '#fff',
-                strokeWeight: 2,
-              }}
-            />
-          )}
-
           {/* Search radius circle */}
           {mapCenter && (
             <Circle
@@ -313,15 +336,6 @@ function App() {
               }}
             />
           )}
-
-          {/* Business markers */}
-          {businesses.map((business) => (
-            <Marker
-              key={business.id}
-              position={{ lat: business.latitude, lng: business.longitude }}
-              title={business.name}
-            />
-          ))}
         </GoogleMap>
       </div>
     </div>
